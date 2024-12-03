@@ -196,6 +196,9 @@ declarations:
 	  with `n` starting at 1 and incrementing with the argument's
 	  position.
 
+Optionally, the VCL and C argument names can be specified independently using
+the ``<vclname>:<cname>`` syntax. See :ref:`ref-vmod-symbols` for details.
+
 .. _ref-vmod-vcl-c-objects:
 
 Objects and methods
@@ -512,6 +515,52 @@ VOID
 	Can only be used for return-value, which makes the function a VCL
 	procedure.
 
+.. _ref-vmod-symbols:
+
+C symbols
+=========
+
+Through generation of ``vcc_if.h``, ``vmodtool.py`` pre-defines the names of
+most symbols on the C side of the vmod interface, namely:
+
+* function names as *<prefix>_<function>*
+
+* event handler names as *<prefix>_<handler>*
+
+* method names as *<prefix>_<class>_<method>*, with two special methods named
+
+  * ``_init`` for the constructor and
+  * ``_fini`` for the destructor
+
+* class struct names as *<prefix>_<vmod>_<class>*
+
+* argument struct names for support of optional arguments as
+  *arg_<prefix>_<vmod>_<function>* for functions and
+  *arg_<prefix>_<vmod>_<class>_<method>* for methods, with member names
+
+  * *valid_<argument>* for the flag of optional arguments being present and
+  * *<argument>* for the argument name
+
+* enum values as *enum_<prefix>_<vmod>_<value>*
+
+For the above, the *<xxx>* placeholders are defined as:
+
+*<prefix>*
+        The ``$Prefix`` stanza value, if defined in the ``.vcc`` file, or
+        ``vmod`` by default.
+
+*<vmod>*
+        The vmod name fro the ``$Module`` stanza of the ``.vcc`` file.
+
+*<argument>*
+        The function or method argument *cname* or, if not given, *vclname*
+        as specified using the *<vclname>:<cname>* syntax.
+
+The other placeholders should be self-explanatory as the name of the respective
+function, class, method or handler.
+
+In summary, symbol names can either be influenced by the vmod author globally
+using ``$Prefix``, or using the *<vclname>:<cname>* syntax for argument names.
 
 .. _ref-vmod-private-pointers:
 
