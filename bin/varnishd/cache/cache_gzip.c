@@ -610,7 +610,7 @@ vdpio_gunzip_fini(struct vdp_ctx *vdc, void **priv)
 	CAST_OBJ_NOTNULL(in, (void *)vg->m_buf, VSCARAB_MAGIC);
 	vg->m_buf = NULL;
 
-	(void)VGZ_Destroy(&vg);
+	(void)VGZ_Destroy(vdc->wrk, &vg);
 }
 
 const struct vdp VDP_gunzip = {
