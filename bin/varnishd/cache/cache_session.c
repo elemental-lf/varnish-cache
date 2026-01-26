@@ -550,8 +550,8 @@ SES_Wait(struct sess *sp, const struct transport *xp)
  * if not: update to per-wrk
  */
 
-static void
-ses_close_acct(stream_close_t reason)
+void
+SES_CloseAcct(stream_close_t reason)
 {
 
 	CHECK_OBJ_NOTNULL(reason, STREAM_CLOSE_MAGIC);
@@ -575,18 +575,33 @@ ses_close_acct(stream_close_t reason)
  * XXX: for SES_Delete() to use.
  */
 
-void
-SES_Close(struct sess *sp, stream_close_t reason)
+static void
+ses_close_default(struct sess *sp, stream_close_t reason)
 {
 	int i;
 
-	CHECK_OBJ_NOTNULL(reason, STREAM_CLOSE_MAGIC);
 	assert(reason->idx > 0);
 	assert(sp->fd > 0);
+
 	i = close(sp->fd);
 	assert(i == 0 || errno != EBADF); /* XXX EINVAL seen */
 	sp->fd = -reason->idx;
-	ses_close_acct(reason);
+	SES_CloseAcct(reason);
+}
+
+void
+SES_Close(struct sess *sp, stream_close_t reason)
+{
+	const struct transport *xp;
+
+	CHECK_OBJ_NOTNULL(sp, SESS_MAGIC);
+	CHECK_OBJ_NOTNULL(reason, STREAM_CLOSE_MAGIC);
+
+	xp = XPORT_ByNumber(sp->sattr[SA_TRANSPORT]);
+	if (xp && xp->sess_close)
+		(void) xp->sess_close(sp, reason);
+	else
+		ses_close_default(sp, reason);
 }
 
 /*--------------------------------------------------------------------
@@ -596,12 +611,20 @@ SES_Close(struct sess *sp, stream_close_t reason)
 void
 SES_Delete(struct sess *sp, stream_close_t reason, vtim_real now)
 {
+	const struct transport *xp;
 
 	CHECK_OBJ_NOTNULL(sp, SESS_MAGIC);
 	CHECK_OBJ_NOTNULL(reason, STREAM_CLOSE_MAGIC);
 
-	if (reason != SC_NULL)
-		SES_Close(sp, reason);
+	if (reason != SC_NULL) {
+		xp = XPORT_ByNumber(sp->sattr[SA_TRANSPORT]);
+		if (xp && xp->sess_close) {
+			if (xp->sess_close(sp, reason))
+				return;
+		} else {
+			ses_close_default(sp, reason);
+		}
+	}
 	assert(sp->fd < 0);
 
 	if (isnan(now))

@@ -52,6 +52,7 @@ typedef void vtr_req_fail_f (struct req *, stream_close_t);
 typedef void vtr_reembark_f (struct worker *, struct req *);
 typedef int vtr_poll_f (struct req *);
 typedef int vtr_minimal_response_f (struct req *, uint16_t status);
+typedef unsigned vtr_sess_close_f(struct sess *, stream_close_t reason);
 
 struct transport {
 	unsigned			magic;
@@ -73,6 +74,7 @@ struct transport {
 	vtr_reembark_f			*reembark;
 	vtr_poll_f			*poll;
 	vtr_minimal_response_f		*minimal_response;
+	vtr_sess_close_f                *sess_close;
 
 	VTAILQ_ENTRY(transport)		list;
 };
@@ -101,3 +103,4 @@ void SES_DeleteHS(struct sess *, enum htc_status_e hs, vtim_real now);
 void SES_Close(struct sess *, stream_close_t reason);
 void SES_SetTransport(struct worker *, struct sess *, struct req *,
     const struct transport *);
+void SES_CloseAcct(stream_close_t reason);
