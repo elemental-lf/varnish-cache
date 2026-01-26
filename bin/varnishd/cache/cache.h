@@ -590,6 +590,8 @@ struct sess {
 
 	struct ws		ws[1];
 
+	void                    *priv;
+
 	vtim_real		t_open;		/* fd accepted */
 	vtim_real		t_idle;		/* fd accepted or resp sent */
 	vtim_dur		timeout_idle;
