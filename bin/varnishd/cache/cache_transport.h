@@ -99,6 +99,7 @@ int VPX_Send_Proxy(int fd, int version, const struct sess *);
 /* cache_session.c */
 struct sess *SES_New(struct pool *);
 void SES_Delete(struct sess *, stream_close_t reason, vtim_real now);
+stream_close_t SES_HS_to_SC(enum htc_status_e hs);
 void SES_DeleteHS(struct sess *, enum htc_status_e hs, vtim_real now);
 void SES_Close(struct sess *, stream_close_t reason);
 void SES_SetTransport(struct worker *, struct sess *, struct req *,

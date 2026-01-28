@@ -652,31 +652,29 @@ SES_Delete(struct sess *sp, stream_close_t reason, vtim_real now)
 	SES_Rel(sp);
 }
 
-void
-SES_DeleteHS(struct sess *sp, enum htc_status_e hs, vtim_real now)
+stream_close_t
+SES_HS_to_SC(enum htc_status_e hs)
 {
-	stream_close_t reason;
-
 	switch (hs) {
 	case HTC_S_JUNK:
-		reason = SC_RX_JUNK;
-		break;
+		return SC_RX_JUNK;
 	case HTC_S_CLOSE:
-		reason = SC_REM_CLOSE;
-		break;
+		return SC_REM_CLOSE;
 	case HTC_S_TIMEOUT:
-		reason = SC_RX_TIMEOUT;
-		break;
+		return SC_RX_TIMEOUT;
 	case HTC_S_OVERFLOW:
-		reason = SC_RX_OVERFLOW;
-		break;
+		return SC_RX_OVERFLOW;
 	case HTC_S_EOF:
-		reason = SC_REM_CLOSE;
-		break;
+		return SC_REM_CLOSE;
 	default:
 		WRONG("htc_status (bad)");
 	}
-	SES_Delete(sp, reason, now);
+}
+
+void
+SES_DeleteHS(struct sess *sp, enum htc_status_e hs, vtim_real now)
+{
+	SES_Delete(sp, SES_HS_to_SC(hs), now);
 }
 
 
